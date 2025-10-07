@@ -22,21 +22,33 @@ public class AuthController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    // Removed unused userRepository
+    // Test endpoint to verify auth endpoints are accessible
+    @GetMapping("/test")
+    public ResponseEntity<?> test() {
+        return ResponseEntity.ok("Auth endpoints are working");
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
-        User u = authService.register(req);
-        return ResponseEntity.ok(u);
+        try {
+            User u = authService.register(req);
+            return ResponseEntity.ok(u);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Registration failed: " + e.getMessage());
+        }
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
-    authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
-    );
-    String token = jwtUtils.generateToken(req.getUsername());
-    AuthResponse response = new AuthResponse(token, "Bearer");
-    return ResponseEntity.ok(response);
+        try {
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
+            );
+            String token = jwtUtils.generateToken(req.getUsername());
+            AuthResponse response = new AuthResponse(token, "Bearer");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Authentication failed: " + e.getMessage());
+        }
     }
 }
